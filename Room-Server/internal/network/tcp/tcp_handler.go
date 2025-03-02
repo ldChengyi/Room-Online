@@ -6,7 +6,7 @@ import (
 	"net"
 	"strings"
 
-	"github.com/CHENG/Room-Online/Room-server/internal/room"
+	"github.com/CHENG/Room-Online/Room-Server/internal/room"
 )
 
 type TCPHandler struct {

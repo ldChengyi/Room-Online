@@ -3,8 +3,8 @@ package core
 import (
 	"fmt"
 
-	"github.com/CHENG/Room-Online/Room-server/internal/network/tcp"
-	"github.com/CHENG/Room-Online/Room-server/internal/room"
+	"github.com/CHENG/Room-Online/Room-Server/internal/network/tcp"
+	"github.com/CHENG/Room-Online/Room-Server/internal/room"
 )
 
 type Server struct {

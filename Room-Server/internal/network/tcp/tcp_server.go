@@ -7,7 +7,7 @@ import (
 	"net"
 	"time"
 
-	"github.com/CHENG/Room-Online/Room-server/internal/room"
+	"github.com/CHENG/Room-Online/Room-Server/internal/room"
 )
 
 // TCPServer 结构体，表示一个 TCP 服务器

@@ -1,4 +1,4 @@
-package tcp
+package server
 
 import (
 	"context"
@@ -7,7 +7,9 @@ import (
 	"net"
 	"time"
 
+	"github.com/CHENG/Room-Online/Room-Server/internal/client"
 	"github.com/CHENG/Room-Online/Room-Server/internal/room"
+	"github.com/google/uuid"
 )
 
 // TCPServer 结构体，表示一个 TCP 服务器
@@ -61,24 +63,29 @@ func (s *TCPServer) Stop() error {
 // acceptLoop 持续接受新连接
 func (s *TCPServer) acceptLoop(ctx context.Context, listener net.Listener) {
 	for {
-		// 接受新的 TCP 连接
 		conn, err := listener.Accept()
 		if errors.Is(err, net.ErrClosed) {
-			return // 如果监听器已关闭，退出循环
+			return
 		}
 
-		// 为每个连接启动一个新的 goroutine 进行处理
-		go s.handleConn(conn) // 这里可以优化，使用连接池
+		// 生成唯一的 ClientID
+		clientID := uuid.New().String()
+
+		// 创建 ClientConn 实例
+		clientConn := &client.ClientConn{
+			Conn:     conn,
+			ClientID: clientID,
+			// Nickname 可以在后续的握手或协议中设置
+		}
+
+		go s.handleConn(clientConn)
 	}
 }
 
-// handleConn 处理单个 TCP 连接
-func (s *TCPServer) handleConn(conn net.Conn) {
-	defer conn.Close() // 确保连接在处理完成后关闭
+func (s *TCPServer) handleConn(conn *client.ClientConn) {
+	defer conn.Close()
 
-	// 创建一个 TCP 处理器，负责解析和执行客户端的命令
 	handler := NewTCPHandler(s.roomMgr)
 
-	// 处理连接中的数据
 	handler.HandleConnection(conn)
 }

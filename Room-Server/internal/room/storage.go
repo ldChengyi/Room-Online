@@ -19,6 +19,8 @@ type Member struct {
 	ClientAddr string
 }
 
+
+
 type Storage interface {
 	CreateRoom(roomID, password string) *Room
 	GetRoom(roomID string) (*Room, bool)

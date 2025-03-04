@@ -1,7 +1,7 @@
 package client
 
 import (
-	"errors"
+	"fmt"
 	"net"
 	"sync"
 
@@ -21,14 +21,18 @@ type Client struct {
 	RoomID   string
 }
 
+func (c *Client) String() string {
+	if c.ClientConn == nil {
+		return fmt.Sprintf("Client{Nickname: %s, RoomID: %s, ClientConn: nil}", c.Nickname, c.RoomID)
+	}
+	return fmt.Sprintf("Client{Nickname: %s, RoomID: %s, ClientID: %s, RemoteAddr: %s}",
+		c.Nickname, c.RoomID, c.ClientID, c.RemoteAddr().String())
+}
+
 type ClientStorage struct {
 	clients sync.Map
 	mu      sync.RWMutex
 }
-
-var (
-	ErrRoomExists = errors.New("[Log Error] nickname has already exists")
-)
 
 func NewClientStorage() *ClientStorage {
 	return &ClientStorage{
@@ -36,28 +40,40 @@ func NewClientStorage() *ClientStorage {
 	}
 }
 
-func (s *ClientStorage) Register(clientConn *ClientConn, nickname string) *Client {
+func (s *ClientStorage) Register(conn *ClientConn, nickname string) *Client {
 
 	if nickname == "" {
 		nickname = utils.GenerateRandomNickname()
 	}
 
 	client := &Client{
-		ClientConn: clientConn, // 使用 ClientConn
+		ClientConn: conn, // 使用 ClientConn
 		Nickname:   nickname,
 		RoomID:     "",
 	}
 
-	s.clients.Store(clientConn.ClientID, client)
+	s.clients.Store(conn.ClientID, client)
 	return client
 }
 
-func (s *ClientStorage) Logout(clientID string) {
-	s.clients.Delete(clientID)
+func (s *ClientStorage) Logout(conn *ClientConn) bool {
+	if _, ok := s.clients.Load(conn.ClientID); !ok {
+		return false // key 不存在，删除失败
+	}
+
+	// key 存在，删除并返回 true
+	s.clients.Delete(conn.ClientID)
+	return true
 }
 
-func (s *ClientStorage) GetClient(clientID string) (*Client, bool) {
-	value, ok := s.clients.Load(clientID)
+func (s *ClientStorage) ExitRoom(conn *ClientConn) {
+	if client, ok := s.clients.Load(conn.ClientID); ok {
+		client.(*Client).RoomID = ""
+	}
+}
+
+func (s *ClientStorage) GetClient(conn *ClientConn) (*Client, bool) {
+	value, ok := s.clients.Load(conn.ClientID)
 	if !ok {
 		return nil, false
 	}

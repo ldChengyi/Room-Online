@@ -3,6 +3,7 @@ package core
 import (
 	"fmt"
 
+	"github.com/CHENG/Room-Online/Room-Server/internal/client"
 	"github.com/CHENG/Room-Online/Room-Server/internal/room"
 	"github.com/CHENG/Room-Online/Room-Server/internal/server"
 )
@@ -12,9 +13,13 @@ type Server struct {
 }
 
 func NewServer() *Server {
-	roomStorage := room.NewMemoryStorage()
+	roomStorage := room.NewRoomStorage()
 	roomManager := room.NewRoomManager(roomStorage)
-	tcpServer := server.NewTCPServer(1204, roomManager)
+
+	clientStorage := client.NewClientStorage()
+	clientManager := client.NewClientManager(clientStorage)
+
+	tcpServer := server.NewTCPServer(1204, roomManager, clientManager)
 	return &Server{
 		tcpSrv: tcpServer,
 	}

@@ -15,10 +15,10 @@ var (
 )
 
 type RoomManager struct {
-	storage Storage
+	storage *RoomStorage
 }
 
-func NewRoomManager(storage Storage) *RoomManager {
+func NewRoomManager(storage *RoomStorage) *RoomManager {
 	return &RoomManager{
 		storage: storage,
 	}

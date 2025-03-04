@@ -19,28 +19,18 @@ type Member struct {
 	ClientAddr string
 }
 
-
-
-type Storage interface {
-	CreateRoom(roomID, password string) *Room
-	GetRoom(roomID string) (*Room, bool)
-	DeleteRoom(roomID string)
-	RefreshRoom(roomID string)
-	ListRoom() []string
-}
-
-type MemoryStorage struct {
+type RoomStorage struct {
 	rooms sync.Map
 	mu    sync.RWMutex
 }
 
-func NewMemoryStorage() *MemoryStorage {
-	return &MemoryStorage{
+func NewRoomStorage() *RoomStorage {
+	return &RoomStorage{
 		rooms: sync.Map{},
 	}
 }
 
-func (s *MemoryStorage) CreateRoom(roomID, password string) *Room {
+func (s *RoomStorage) CreateRoom(roomID, password string) *Room {
 	room := &Room{
 		ID:        roomID,
 		Password:  password,
@@ -53,7 +43,7 @@ func (s *MemoryStorage) CreateRoom(roomID, password string) *Room {
 	return room
 }
 
-func (s *MemoryStorage) GetRoom(roomID string) (*Room, bool) {
+func (s *RoomStorage) GetRoom(roomID string) (*Room, bool) {
 	value, ok := s.rooms.Load(roomID)
 	if !ok {
 		return nil, false
@@ -61,17 +51,17 @@ func (s *MemoryStorage) GetRoom(roomID string) (*Room, bool) {
 	return value.(*Room), true
 }
 
-func (s *MemoryStorage) DeleteRoom(roomID string) {
+func (s *RoomStorage) DeleteRoom(roomID string) {
 	s.rooms.Delete(roomID)
 }
 
-func (s *MemoryStorage) RefreshRoom(roomID string) {
+func (s *RoomStorage) RefreshRoom(roomID string) {
 	if room, ok := s.GetRoom(roomID); ok {
 		room.ExpiresAt = time.Now().Add(2 * time.Hour)
 	}
 }
 
-func (s *MemoryStorage) ListRoom() []string {
+func (s *RoomStorage) ListRoom() []string {
 	roomIDs := make([]string, 0)
 
 	s.rooms.Range(func(key, _ any) bool { // 这里需要 return true

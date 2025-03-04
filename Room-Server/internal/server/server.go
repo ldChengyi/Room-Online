@@ -14,16 +14,18 @@ import (
 
 // TCPServer 结构体，表示一个 TCP 服务器
 type TCPServer struct {
-	port     int               // 服务器监听的端口
-	roomMgr  *room.RoomManager // 房间管理器，负责管理房间的逻辑
-	listener net.Listener      // TCP 监听器
+	port      int               // 服务器监听的端口
+	roomMgr   *room.RoomManager // 房间管理器，负责管理房间的逻辑
+	clientMgr *client.ClientManager
+	listener  net.Listener // TCP 监听器
 }
 
 // NewTCPServer 创建一个新的 TCP 服务器实例
-func NewTCPServer(port int, rm *room.RoomManager) *TCPServer {
+func NewTCPServer(port int, rm *room.RoomManager, cm *client.ClientManager) *TCPServer {
 	return &TCPServer{
-		port:    port, // 设置监听端口
-		roomMgr: rm,   // 绑定房间管理器
+		port:      port, // 设置监听端口
+		roomMgr:   rm,   // 绑定房间管理器
+		clientMgr: cm,   // 绑定客户端管理器
 	}
 }
 
@@ -85,7 +87,7 @@ func (s *TCPServer) acceptLoop(ctx context.Context, listener net.Listener) {
 func (s *TCPServer) handleConn(conn *client.ClientConn) {
 	defer conn.Close()
 
-	handler := NewTCPHandler(s.roomMgr)
+	handler := NewTCPHandler(s.roomMgr, s.clientMgr)
 
 	handler.HandleConnection(conn)
 }
